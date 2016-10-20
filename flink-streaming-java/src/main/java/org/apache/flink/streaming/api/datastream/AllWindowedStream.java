@@ -48,8 +48,8 @@ import org.apache.flink.streaming.api.windowing.triggers.Trigger;
 import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.streaming.runtime.operators.windowing.EvictingWindowOperator;
 import org.apache.flink.streaming.runtime.operators.windowing.WindowOperator;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableAllWindowFunction;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueAllWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableAllProcessWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueAllProcessWindowFunction;
 import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
@@ -285,7 +285,7 @@ public class AllWindowedStream<T, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					new InternalIterableAllWindowFunction<>(function),
+					new InternalIterableAllProcessWindowFunction<>(function),
 					trigger,
 					evictor,
 					allowedLateness);
@@ -302,7 +302,7 @@ public class AllWindowedStream<T, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					new InternalIterableAllWindowFunction<>(function),
+					new InternalIterableAllProcessWindowFunction<>(function),
 					trigger,
 					allowedLateness);
 		}
@@ -377,7 +377,7 @@ public class AllWindowedStream<T, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					new InternalIterableAllWindowFunction<>(new ReduceApplyAllWindowFunction<>(reduceFunction, function)),
+					new InternalIterableAllProcessWindowFunction<>(new ReduceApplyAllWindowFunction<>(reduceFunction, function)),
 					trigger,
 					evictor,
 					allowedLateness);
@@ -395,7 +395,7 @@ public class AllWindowedStream<T, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					new InternalSingleValueAllWindowFunction<>(function),
+					new InternalSingleValueAllProcessWindowFunction<>(function),
 					trigger,
 					allowedLateness);
 		}
@@ -474,7 +474,7 @@ public class AllWindowedStream<T, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					new InternalIterableAllWindowFunction<>(new FoldApplyAllWindowFunction<>(initialValue, foldFunction, function)),
+					new InternalIterableAllProcessWindowFunction<>(new FoldApplyAllWindowFunction<>(initialValue, foldFunction, function)),
 					trigger,
 					evictor,
 					allowedLateness);
@@ -491,7 +491,7 @@ public class AllWindowedStream<T, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					new InternalSingleValueAllWindowFunction<>(function),
+					new InternalSingleValueAllProcessWindowFunction<>(function),
 					trigger,
 					allowedLateness);
 		}

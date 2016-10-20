@@ -17,6 +17,7 @@
  */
 package org.apache.flink.streaming.runtime.operators.windowing.functions;
 
+import com.google.common.collect.Iterables;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.IterationRuntimeContext;
 import org.apache.flink.api.common.functions.RichFunction;
@@ -24,30 +25,30 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.functions.util.FunctionUtils;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.apache.flink.streaming.api.operators.OutputTypeConfigurable;
 import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.util.Collector;
 
 /**
- * Internal window function for wrapping a {@link WindowFunction} that takes an {@code Iterable}
+ * Internal window function for wrapping an {@link AllWindowFunction} that takes an {@code Iterable}
  * when the window state also is an {@code Iterable}.
  */
-public final class InternalIterableWindowFunction<IN, OUT, KEY, W extends Window>
-		extends InternalWindowFunction<Iterable<IN>, OUT, KEY, W>
+public final class InternalIterableAllProcessWindowFunction<IN, OUT, W extends Window>
+		extends InternalProcessWindowFunction<Iterable<IN>, OUT, Byte, W>
 		implements RichFunction {
 
 	private static final long serialVersionUID = 1L;
 
-	protected final WindowFunction<IN, OUT, KEY, W> wrappedFunction;
+	protected final AllWindowFunction<IN, OUT, W> wrappedFunction;
 
-	public InternalIterableWindowFunction(WindowFunction<IN, OUT, KEY, W> wrappedFunction) {
+	public InternalIterableAllProcessWindowFunction(AllWindowFunction<IN, OUT, W> wrappedFunction) {
 		this.wrappedFunction = wrappedFunction;
 	}
 
 	@Override
-	public void apply(KEY key, W window, Iterable<IN> input, Collector<OUT> out) throws Exception {
-		wrappedFunction.apply(key, window, input, out);
+	public void process(Byte aByte, Iterable<Iterable<IN>> elements, Context ctx, Collector<OUT> out) throws Exception {
+		wrappedFunction.apply(ctx.window(), Iterables.concat(elements), out);
 	}
 
 	@Override

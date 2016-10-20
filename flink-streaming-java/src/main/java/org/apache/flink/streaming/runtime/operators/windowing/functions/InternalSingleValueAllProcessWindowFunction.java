@@ -24,32 +24,30 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.functions.util.FunctionUtils;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.apache.flink.streaming.api.operators.OutputTypeConfigurable;
 import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.util.Collector;
 
-import java.util.Collections;
-
 /**
- * Internal window function for wrapping a {@link WindowFunction} that takes an {@code Iterable}
+ * Internal window function for wrapping an {@link AllWindowFunction} that takes an {@code Iterable}
  * when the window state is a single value.
  */
-public final class InternalSingleValueWindowFunction<IN, OUT, KEY, W extends Window>
-		extends InternalWindowFunction<IN, OUT, KEY, W>
+public final class InternalSingleValueAllProcessWindowFunction<IN, OUT, W extends Window>
+		extends InternalProcessWindowFunction<IN, OUT, Byte, W>
 		implements RichFunction {
 
 	private static final long serialVersionUID = 1L;
 
-	protected WindowFunction<IN, OUT, KEY, W> wrappedFunction;
+	protected AllWindowFunction<IN, OUT, W> wrappedFunction;
 
-	public InternalSingleValueWindowFunction(WindowFunction<IN, OUT, KEY, W> wrappedFunction) {
+	public InternalSingleValueAllProcessWindowFunction(AllWindowFunction<IN, OUT, W> wrappedFunction) {
 		this.wrappedFunction = wrappedFunction;
 	}
 
 	@Override
-	public void apply(KEY key, W window, IN input, Collector<OUT> out) throws Exception {
-		wrappedFunction.apply(key, window, Collections.singletonList(input), out);
+	public void process(Byte aByte, Iterable<IN> elements, Context ctx, Collector<OUT> out) throws Exception {
+		wrappedFunction.apply(ctx.window(), elements, out);
 	}
 
 	@Override

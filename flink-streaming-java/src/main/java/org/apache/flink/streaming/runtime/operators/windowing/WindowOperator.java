@@ -52,11 +52,12 @@ import org.apache.flink.streaming.api.windowing.assigners.WindowAssigner;
 import org.apache.flink.streaming.api.windowing.triggers.Trigger;
 import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
 import org.apache.flink.streaming.api.windowing.windows.Window;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalProcessWindowFunction;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,7 +78,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * <p>
  * Each pane gets its own instance of the provided {@code Trigger}. This trigger determines when
  * the contents of the pane should be processed to emit results. When a trigger fires,
- * the given {@link InternalWindowFunction} is invoked to produce the results that are emitted for
+ * the given {@link InternalProcessWindowFunction} is invoked to produce the results that are emitted for
  * the pane to which the {@code Trigger} belongs.
  *
  * @param <K> The type of key returned by the {@code KeySelector}.
@@ -87,7 +88,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  */
 @Internal
 public class WindowOperator<K, IN, ACC, OUT, W extends Window>
-	extends AbstractUdfStreamOperator<OUT, InternalWindowFunction<ACC, OUT, K, W>>
+	extends AbstractUdfStreamOperator<OUT, InternalProcessWindowFunction<ACC, OUT, K, W>>
 	implements OneInputStreamOperator<IN, OUT>, Triggerable<K, W> {
 
 	private static final long serialVersionUID = 1L;
@@ -154,7 +155,7 @@ public class WindowOperator<K, IN, ACC, OUT, W extends Window>
 			KeySelector<IN, K> keySelector,
 			TypeSerializer<K> keySerializer,
 			StateDescriptor<? extends AppendingState<IN, ACC>, ?> windowStateDescriptor,
-			InternalWindowFunction<ACC, OUT, K, W> windowFunction,
+			InternalProcessWindowFunction<ACC, OUT, K, W> windowFunction,
 			Trigger<? super IN, ? super W> trigger,
 			long allowedLateness) {
 
@@ -434,7 +435,32 @@ public class WindowOperator<K, IN, ACC, OUT, W extends Window>
 	@SuppressWarnings("unchecked")
 	private void fire(W window, ACC contents) throws Exception {
 		timestampedCollector.setAbsoluteTimestamp(window.maxTimestamp());
-		userFunction.apply(context.key, context.window, contents, timestampedCollector);
+		// userFunction.apply(context.key, context.window, contents, timestampedCollector);
+		userFunction.process(context.key, Collections.singleton(contents),
+			new TriggerContext(userFunction, context, window),
+			timestampedCollector);
+	}
+
+	private class TriggerContext<IN, OUT, K, W extends Window> extends InternalProcessWindowFunction<IN, OUT, K, W>.Context {
+
+		private final Context context;
+		private final W window;
+
+		public TriggerContext(InternalProcessWindowFunction fn, Context context, W window) {
+			fn.super();
+			this.context = context;
+			this.window = window;
+		}
+
+		@Override
+		public W window() {
+			return window;
+		}
+
+		@Override
+		public long watermark() {
+			return context.getCurrentWatermark();
+		}
 	}
 
 	/**

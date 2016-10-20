@@ -32,7 +32,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.typeutils.TypeInfoParser;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.state.StreamStateHandle;
 import org.apache.flink.streaming.api.datastream.WindowedStream;
 import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -60,8 +59,8 @@ import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.api.windowing.windows.Window;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableWindowFunction;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableProcessWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueProcessWindowFunction;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.runtime.tasks.OperatorStateHandles;
 import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness;
@@ -176,7 +175,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				EventTimeTrigger.create(),
 				0);
 
@@ -210,7 +209,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalIterableWindowFunction<>(new RichSumReducer<TimeWindow>()),
+				new InternalIterableProcessWindowFunction<>(new RichSumReducer<TimeWindow>()),
 				EventTimeTrigger.create(),
 				0);
 
@@ -309,7 +308,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				EventTimeTrigger.create(),
 				0);
 
@@ -341,7 +340,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalIterableWindowFunction<>(new RichSumReducer<TimeWindow>()),
+				new InternalIterableProcessWindowFunction<>(new RichSumReducer<TimeWindow>()),
 				EventTimeTrigger.create(),
 				0);
 
@@ -376,7 +375,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalIterableWindowFunction<>(new SessionWindowFunction()),
+				new InternalIterableProcessWindowFunction<>(new SessionWindowFunction()),
 				EventTimeTrigger.create(),
 				0);
 
@@ -448,7 +447,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				EventTimeTrigger.create(),
 				0);
 
@@ -522,7 +521,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalIterableWindowFunction<>(new SessionWindowFunction()),
+				new InternalIterableProcessWindowFunction<>(new SessionWindowFunction()),
 				PurgingTrigger.of(CountTrigger.of(4)),
 				0);
 
@@ -592,7 +591,7 @@ public class WindowOperatorTest extends TestLogger {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new SessionWindowFunction()),
+			new InternalIterableProcessWindowFunction<>(new SessionWindowFunction()),
 			ContinuousEventTimeTrigger.of(Time.seconds(2)),
 			0);
 
@@ -696,7 +695,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalIterableWindowFunction<>(new SessionWindowFunction()),
+				new InternalIterableProcessWindowFunction<>(new SessionWindowFunction()),
 				EventTimeTrigger.create(),
 				0);
 
@@ -754,7 +753,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>()),
 				ContinuousEventTimeTrigger.of(Time.of(WINDOW_SIZE, TimeUnit.SECONDS)),
 				0);
 
@@ -842,7 +841,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>()),
 				PurgingTrigger.of(CountTrigger.of(WINDOW_SIZE)),
 				0);
 
@@ -883,7 +882,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>()),
 				PurgingTrigger.of(CountTrigger.of(WINDOW_SIZE)),
 				0);
 
@@ -929,7 +928,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				ProcessingTimeTrigger.create(), 0);
 
 		OneInputStreamOperatorTestHarness<Tuple2<String, Integer>, Tuple2<String, Integer>> testHarness =
@@ -986,7 +985,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				ProcessingTimeTrigger.create(), 0);
 
 		OneInputStreamOperatorTestHarness<Tuple2<String, Integer>, Tuple2<String, Integer>> testHarness =
@@ -1056,7 +1055,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				ProcessingTimeTrigger.create(), 0);
 
 		OneInputStreamOperatorTestHarness<Tuple2<String, Integer>, Tuple2<String, Integer>> testHarness =
@@ -1120,7 +1119,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				PurgingTrigger.of(EventTimeTrigger.create()),
 				LATENESS);
 
@@ -1180,7 +1179,7 @@ public class WindowOperatorTest extends TestLogger {
 					new TupleKeySelector(),
 					BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 					stateDesc,
-					new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+					new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 					EventTimeTrigger.create(),
 					LATENESS);
 
@@ -1246,7 +1245,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -1306,7 +1305,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -1381,7 +1380,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				PurgingTrigger.of(EventTimeTrigger.create()),
 				LATENESS);
 
@@ -1471,7 +1470,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -1555,7 +1554,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				PurgingTrigger.of(EventTimeTrigger.create()),
 				LATENESS);
 
@@ -1639,7 +1638,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -1732,7 +1731,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				PurgingTrigger.of(EventTimeTrigger.create()),
 				LATENESS);
 
@@ -1817,7 +1816,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -1902,7 +1901,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				windowStateDesc,
-				new InternalIterableWindowFunction<>(new PassThroughFunction2()),
+				new InternalIterableProcessWindowFunction<>(new PassThroughFunction2()),
 				new EventTimeTriggerAccumGC(LATENESS),
 				LATENESS);
 
@@ -1956,7 +1955,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				windowStateDesc,
-				new InternalIterableWindowFunction<>(new PassThroughFunction()),
+				new InternalIterableProcessWindowFunction<>(new PassThroughFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -2002,7 +2001,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughWindowFunction<String, TimeWindow, Tuple2<String, Integer>>()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -2059,7 +2058,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				windowStateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -2104,7 +2103,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				windowStateDesc,
-				new InternalIterableWindowFunction<>(new PassThroughFunction()),
+				new InternalIterableProcessWindowFunction<>(new PassThroughFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -2148,7 +2147,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalSingleValueWindowFunction<>(new ReducedSessionWindowFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new ReducedSessionWindowFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 
@@ -2202,7 +2201,7 @@ public class WindowOperatorTest extends TestLogger {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				windowStateDesc,
-				new InternalSingleValueWindowFunction<>(new PassThroughFunction()),
+				new InternalSingleValueProcessWindowFunction<>(new PassThroughFunction()),
 				EventTimeTrigger.create(),
 				LATENESS);
 

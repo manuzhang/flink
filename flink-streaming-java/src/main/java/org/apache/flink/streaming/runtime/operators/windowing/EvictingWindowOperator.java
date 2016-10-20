@@ -36,7 +36,7 @@ import org.apache.flink.streaming.api.windowing.evictors.Evictor;
 import org.apache.flink.streaming.api.windowing.triggers.Trigger;
 import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
 import org.apache.flink.streaming.api.windowing.windows.Window;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalProcessWindowFunction;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
 import java.util.Collection;
@@ -69,7 +69,7 @@ public class EvictingWindowOperator<K, IN, OUT, W extends Window> extends Window
 		KeySelector<IN, K> keySelector,
 		TypeSerializer<K> keySerializer,
 		StateDescriptor<? extends ListState<StreamRecord<IN>>, ?> windowStateDescriptor,
-		InternalWindowFunction<Iterable<IN>, OUT, K, W> windowFunction,
+		InternalProcessWindowFunction<Iterable<IN>, OUT, K, W> windowFunction,
 		Trigger<? super IN, ? super W> trigger,
 		Evictor<? super IN, ? super W> evictor,
 		long allowedLateness) {
@@ -298,7 +298,30 @@ public class EvictingWindowOperator<K, IN, OUT, W extends Window> extends Window
 					return input.getValue();
 				}
 			});
-		userFunction.apply(context.key, context.window, projectedContents, timestampedCollector);
+		userFunction.process(context.key, (Iterable) projectedContents,
+			new TriggerContext(userFunction, context, context.window), timestampedCollector);
+	}
+
+	private class TriggerContext<IN, OUT, K, W extends Window> extends InternalProcessWindowFunction<IN, OUT, K, W>.Context {
+
+		private final Context context;
+		private final W window;
+
+		public TriggerContext(InternalProcessWindowFunction fn, Context context, W window) {
+			fn.super();
+			this.context = context;
+			this.window = window;
+		}
+
+		@Override
+		public W window() {
+			return window;
+		}
+
+		@Override
+		public long watermark() {
+			return context.getCurrentWatermark();
+		}
 	}
 
 	private void cleanup(W window,
