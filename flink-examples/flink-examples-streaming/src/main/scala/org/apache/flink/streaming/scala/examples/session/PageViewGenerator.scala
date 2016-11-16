@@ -13,7 +13,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License
+ * limitations under the License.
  */
 
 package org.apache.flink.streaming.scala.examples.session
@@ -26,7 +26,8 @@ object PageViewGenerator {
 
   val GAP: Int = new Random().nextInt(20)
   val LATENESS = Distribution[Boolean](List(false -> 0.8, true -> 0.2))
-  val PAGES = Distribution[String](List("foo.com" -> 0.7, "foo.news.com" -> 0.2, "foo.contact.com" -> 0.1))
+  val PAGES = Distribution[String](
+    List("foo.com" -> 0.35, "foo.news.com" -> 0.30, "foo.contact.com" -> 0.35))
   val USER_ID = Distribution.intEvenDistribution(0, 1)
   private var timestamp: Long = 1000L
   var lateRate = LateRate(0, 0)
@@ -84,7 +85,8 @@ object PageViewGenerator {
 
     def intEvenDistribution(start: Int, end: Int): Distribution[Int] = {
       if (start >= end) {
-        throw new IllegalArgumentException(s"invalid arguments [$start, $end) to generate even distribution")
+        throw new IllegalArgumentException(
+          s"invalid arguments [$start, $end) to generate even distribution")
       }
 
       Distribution[Int]((start until end).map(_ -> 1.0 / (end - start)).toList)

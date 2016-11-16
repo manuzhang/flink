@@ -28,7 +28,6 @@ import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironm
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.ContinuousEventTimeTrigger
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.streaming.scala.examples.session.PageViewGenerator.PageView
 import org.apache.flink.util.Collector
@@ -45,7 +44,7 @@ object PageViewSessionWindowing {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.getConfig.setGlobalJobParameters(params)
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    env.setParallelism(1)
+    env.setParallelism(2)
 
     val dataStream: DataStream[PageView] = env.addSource(new SourceFunction[PageView]() {
 
