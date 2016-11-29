@@ -22,7 +22,7 @@ import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
-import org.apache.flink.streaming.api.functions.source.SourceFunction
+import org.apache.flink.streaming.api.functions.source.{ParallelSourceFunction, SourceFunction}
 import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.watermark.Watermark
@@ -39,14 +39,13 @@ object PageViewSessionWindowing {
   def main(args: Array[String]): Unit = {
 
     val params = ParameterTool.fromArgs(args)
-    val gap = Time.milliseconds(params.getLong("gap", 10))
 
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.getConfig.setGlobalJobParameters(params)
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.setParallelism(2)
 
-    val dataStream: DataStream[PageView] = env.addSource(new SourceFunction[PageView]() {
+    val dataStream: DataStream[PageView] = env.addSource(new ParallelSourceFunction[PageView]() {
 
       override def run(ctx: SourceContext[PageView]): Unit = {
         var watermark = 0L
@@ -66,6 +65,7 @@ object PageViewSessionWindowing {
       override def cancel(): Unit = {
       }
     })
+    dataStream.name("PageViewGenerator")
 
     dataStream.writeAsText("page_views.txt", FileSystem.WriteMode.OVERWRITE)
 

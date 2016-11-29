@@ -327,13 +327,12 @@ under the License.
 
 							<archive>
 								<manifestEntries>
-									<program-class>org.apache.flink.streaming.examples.windowing.SessionWindowing</program-class>
+									<program-class>org.apache.flink.streaming.scala.examples.session.PageViewSessionWindowing</program-class>
 								</manifestEntries>
 							</archive>
 
 							<includes>
-								<include>org/apache/flink/streaming/examples/windowing/SessionWindowing.class</include>
-								<include>org/apache/flink/streaming/examples/windowing/SessionWindowing$*.class</include>
+								<include>org/apache/flink/streaming/scala/examples/session/*.class</include>
 							</includes>
 						</configuration>
 					</execution>
