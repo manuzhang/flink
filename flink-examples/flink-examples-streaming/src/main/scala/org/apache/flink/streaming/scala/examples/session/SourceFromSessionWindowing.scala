@@ -17,24 +17,22 @@
  */
 package org.apache.flink.streaming.scala.examples.session
 
+import com.vip.data.cleaning.logic.mars.mobile.page.MobilePageProtos.MobilePage
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
-import org.apache.flink.streaming.api.functions.source.{ParallelSourceFunction, SourceFunction}
+import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction
 import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
-import org.apache.flink.streaming.scala.examples.session.PageViewGenerator.PageView
 import org.apache.flink.util.Collector
 
-
-
-object PageViewSessionWindowing {
+object SourceFromSessionWindowing {
 
   def main(args: Array[String]): Unit = {
 
@@ -45,15 +43,17 @@ object PageViewSessionWindowing {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.setParallelism(2)
 
-    val dataStream: DataStream[PageView] = env.addSource(new ParallelSourceFunction[PageView]() {
+    val dataStream: DataStream[MobilePage] = env.addSource(new ParallelSourceFunction[MobilePage]() {
 
-      override def run(ctx: SourceContext[PageView]): Unit = {
+      override def run(ctx: SourceContext[MobilePage]): Unit = {
         var watermark = 0L
         var count = 0
         while (count < 100) {
-          val pv = PageViewGenerator.genPageView
-          val wm = PageViewGenerator.genWatermark(pv.timestamp)
-          ctx.collectWithTimestamp(pv, pv.timestamp)
+          val page = MobilePageGenerator.genMobilePage
+          // TODO: page_start_time, page_end_time, page_loaded_time or triggertime?
+          val eventTime = page.getPageLoadedTime
+          val wm = MobilePageGenerator.genWatermark(eventTime)
+          ctx.collectWithTimestamp(page, eventTime)
           if (wm > watermark) {
             watermark = wm
             ctx.emitWatermark(new Watermark(watermark))
@@ -70,28 +70,26 @@ object PageViewSessionWindowing {
     dataStream.writeAsText("page_views.txt", FileSystem.WriteMode.OVERWRITE)
 
     dataStream
-      .keyBy(_.userId)
-      .window(EventTimeSessionWindows.withGap(Time.milliseconds(PageViewGenerator.GAP)))
+      .keyBy(_.getUserid)
+      .window(EventTimeSessionWindows.withGap(Time.milliseconds(MobilePageGenerator.GAP)))
       .trigger(PerElementEventTimeTrigger.create())
       .apply(new SortAndEmitFn).writeAsText("user_trajectory.txt", FileSystem.WriteMode.OVERWRITE)
 
     env.execute("PageView")
-    println(s"GAP: ${PageViewGenerator.GAP}")
-    println(PageViewGenerator.lateRate)
   }
 
-  class SortAndEmitFn extends ProcessWindowFunction[PageView, UserTrajectory, Int, TimeWindow] {
+  class SortAndEmitFn extends ProcessWindowFunction[MobilePage, UserTrajectory, String, TimeWindow] {
 
-    override def process(userId: Int, input: Iterable[PageView],
+    override def process(userId: String, input: Iterable[MobilePage],
       context: Context,
       out: Collector[UserTrajectory]): Unit = {
-      val trajectory = input.filter(_.timestamp <= context.watermark).toList.sortBy(_.timestamp)
+      val trajectory = input.filter(_.getPageLoadedTime <= context.watermark).toList.sortBy(_.getPageLoadedTime)
       out.collect(UserTrajectory(userId, trajectory, context.window, context.watermark))
     }
   }
 
 
 
-  case class UserTrajectory(userId: Int, trajectory: List[PageView], window: TimeWindow,
+  case class UserTrajectory(userId: String, trajectory: List[MobilePage], window: TimeWindow,
                             watermark: Long)
 }

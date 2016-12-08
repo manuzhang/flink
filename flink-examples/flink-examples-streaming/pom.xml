@@ -327,7 +327,7 @@ under the License.
 
 							<archive>
 								<manifestEntries>
-									<program-class>org.apache.flink.streaming.scala.examples.session.PageViewSessionWindowing</program-class>
+									<program-class>org.apache.flink.streaming.scala.examples.session.SourceFromSessionWindowing</program-class>
 								</manifestEntries>
 							</archive>
 
