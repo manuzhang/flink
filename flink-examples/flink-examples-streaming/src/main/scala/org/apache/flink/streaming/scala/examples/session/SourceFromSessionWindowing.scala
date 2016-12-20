@@ -17,18 +17,14 @@
  */
 package org.apache.flink.streaming.scala.examples.session
 
-import com.vip.data.cleaning.logic.mars.mobile.page.MobilePageProtos.MobilePage
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.vip.data.cleaning.logic.mars.MobilePageProto.{MobilePage, SourceFrom}
 import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.core.fs.FileSystem
+import org.apache.flink.core.fs.{FileSystem, Path}
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
-import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction
 import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
-import org.apache.flink.streaming.api.watermark.Watermark
-import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows
-import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
 
@@ -43,7 +39,11 @@ object SourceFromSessionWindowing {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.setParallelism(2)
 
-    val dataStream: DataStream[MobilePage] = env.addSource(new ParallelSourceFunction[MobilePage]() {
+    val inputFormat = new MobilePageCsvInputFormat(new Path("page.csv"))
+
+    val dataStream = env.readFile(inputFormat, "page.csv")
+
+/*    val dataStream: DataStream[MobilePage] = env.addSource(new ParallelSourceFunction[MobilePage]() {
 
       override def run(ctx: SourceContext[MobilePage]): Unit = {
         var watermark = 0L
@@ -51,7 +51,7 @@ object SourceFromSessionWindowing {
         while (count < 100) {
           val page = MobilePageGenerator.genMobilePage
           // TODO: page_start_time, page_end_time, page_loaded_time or triggertime?
-          val eventTime = page.getPageLoadedTime
+          val eventTime = getEventTime(page)
           val wm = MobilePageGenerator.genWatermark(eventTime)
           ctx.collectWithTimestamp(page, eventTime)
           if (wm > watermark) {
@@ -64,18 +64,22 @@ object SourceFromSessionWindowing {
 
       override def cancel(): Unit = {
       }
-    })
-    dataStream.name("PageViewGenerator")
+    })*/
 
-    dataStream.writeAsText("page_views.txt", FileSystem.WriteMode.OVERWRITE)
+    dataStream.filter(!_.getSourceFromOrigin.equals("-99")).writeAsText("page_views", FileSystem.WriteMode.OVERWRITE)
 
-    dataStream
+
+/*    dataStream
       .keyBy(_.getUserid)
       .window(EventTimeSessionWindows.withGap(Time.milliseconds(MobilePageGenerator.GAP)))
       .trigger(PerElementEventTimeTrigger.create())
-      .apply(new SortAndEmitFn).writeAsText("user_trajectory.txt", FileSystem.WriteMode.OVERWRITE)
+      .apply(new SortAndEmitFn).writeAsText("user_trajectory", FileSystem.WriteMode.OVERWRITE)*/
 
     env.execute("PageView")
+  }
+
+  private def getEventTime(mobilePage: MobilePage): Long = {
+    mobilePage.getPageStartTime
   }
 
   class SortAndEmitFn extends ProcessWindowFunction[MobilePage, UserTrajectory, String, TimeWindow] {
@@ -83,7 +87,7 @@ object SourceFromSessionWindowing {
     override def process(userId: String, input: Iterable[MobilePage],
       context: Context,
       out: Collector[UserTrajectory]): Unit = {
-      val trajectory = input.filter(_.getPageLoadedTime <= context.watermark).toList.sortBy(_.getPageLoadedTime)
+      val trajectory = input.filter(getEventTime(_) <= context.watermark).toList.sortBy(getEventTime)
       out.collect(UserTrajectory(userId, trajectory, context.window, context.watermark))
     }
   }

@@ -19,7 +19,7 @@ package org.apache.flink.streaming.scala.examples.session
 
 import java.util.UUID
 
-import com.vip.data.cleaning.logic.mars.mobile.page.MobilePageProtos.{MobilePage, SourceFrom}
+import com.vip.data.cleaning.logic.mars.MobilePageProto.{MobilePage, SourceFrom}
 
 import scala.util.Random
 
@@ -43,9 +43,9 @@ object MobilePageGenerator extends DistributionGenerator {
     val sourceFrom: SourceFrom = SourceFromGenerator.genSourceFrom
     MobilePage.newBuilder()
       .setPageId(random.nextLong())
-      .setPageLoadedTime(timestamp)
+      .setPageStartTime(timestamp)
       .setUserid(UUID.randomUUID().toString)
-      .setSourceFrom(sourceFrom)
+      .setSourceFromOrigin(sourceFrom.toString)
       .build()
   }
 
