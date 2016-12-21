@@ -23,6 +23,8 @@ import org.apache.flink.api.common.functions._
 import org.apache.flink.api.common.state.{FoldingStateDescriptor, ListStateDescriptor, ReducingStateDescriptor, ValueStateDescriptor}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
+import org.apache.flink.api.java.Utils
+import org.apache.flink.api.java.typeutils.TypeExtractor
 import org.apache.flink.streaming.api.datastream.{QueryableStateStream, SingleOutputStreamOperator, DataStream => JavaStream, KeyedStream => KeyedJavaStream, WindowedStream => WindowedJavaStream}
 import org.apache.flink.streaming.api.functions.{ProcessFunction, RichProcessFunction}
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction.AggregationType
@@ -83,7 +85,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     asScalaStream(javaStream.process(processFunction, implicitly[TypeInformation[R]]))
   }
-  
+
   // ------------------------------------------------------------------------
   //  Windowing
   // ------------------------------------------------------------------------
@@ -434,7 +436,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     map(mapper)
   }
-  
+
   /**
    * Creates a new DataStream by applying the given stateful function to every element and 
    * flattening the results. To use state partitioning, a key must be defined using .keyBy(..), 

@@ -42,7 +42,7 @@ import org.apache.flink.streaming.api.windowing.triggers.EventTimeTrigger;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.api.windowing.windows.Window;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableProcessWindowFunction;
 import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness;
@@ -86,7 +86,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
 			CountTrigger.of(TRIGGER_COUNT),
 			CountEvictor.of(WINDOW_SIZE,EVICT_AFTER),
 			0);
@@ -166,7 +166,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
 			CountTrigger.of(TRIGGER_COUNT),
 			TimeEvictor.of(Time.seconds(2), EVICT_AFTER),
 			0);
@@ -240,7 +240,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<TimeWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<TimeWindow>(closeCalled)),
 			CountTrigger.of(TRIGGER_COUNT),
 			TimeEvictor.of(Time.seconds(2)),
 			0);
@@ -316,7 +316,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
 			CountTrigger.of(TRIGGER_COUNT),
 			TimeEvictor.of(Time.seconds(2), EVICT_AFTER),
 			0);
@@ -390,7 +390,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
 			CountTrigger.of(TRIGGER_COUNT),
 			DeltaEvictor.of(THRESHOLD, new DeltaFunction<Tuple2<String, Integer>>() {
 				@Override
@@ -467,7 +467,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
 			CountTrigger.of(TRIGGER_COUNT),
 			DeltaEvictor.of(THRESHOLD, new DeltaFunction<Tuple2<String, Integer>>() {
 				@Override
@@ -540,7 +540,7 @@ public class EvictingWindowOperatorTest {
 				new TupleKeySelector(),
 				BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 				stateDesc,
-				new InternalIterableWindowFunction<>(new ReduceIterableWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>(new SumReducer())),
+				new InternalIterableProcessWindowFunction<>(new ReduceIterableWindowFunction<String, GlobalWindow, Tuple2<String, Integer>>(new SumReducer())),
 				CountTrigger.of(WINDOW_SLIDE),
 				CountEvictor.of(WINDOW_SIZE),
 				0);
@@ -612,7 +612,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<GlobalWindow>(closeCalled)),
 			CountTrigger.of(WINDOW_SLIDE),
 			CountEvictor.of(WINDOW_SIZE),
 			0);
@@ -683,7 +683,7 @@ public class EvictingWindowOperatorTest {
 			new TupleKeySelector(),
 			BasicTypeInfo.STRING_TYPE_INFO.createSerializer(new ExecutionConfig()),
 			stateDesc,
-			new InternalIterableWindowFunction<>(new RichSumReducer<TimeWindow>(closeCalled)),
+			new InternalIterableProcessWindowFunction<>(new RichSumReducer<TimeWindow>(closeCalled)),
 			EventTimeTrigger.create(),
 			CountEvictor.of(WINDOW_SIZE),
 			0);

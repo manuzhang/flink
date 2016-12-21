@@ -28,8 +28,8 @@ under the License.
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>flink-streaming-scala_2.10</artifactId>
-	<name>flink-streaming-scala</name>
+	<artifactId>flink-streaming-scala-custom_2.10</artifactId>
+	<name>flink-streaming-scala-custom</name>
 	<packaging>jar</packaging>
 
 	<dependencies>

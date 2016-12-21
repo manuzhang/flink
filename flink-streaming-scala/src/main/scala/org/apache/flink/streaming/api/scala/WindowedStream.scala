@@ -18,14 +18,14 @@
 
 package org.apache.flink.streaming.api.scala
 
-import org.apache.flink.annotation.{PublicEvolving, Public}
+import org.apache.flink.annotation.{Public, PublicEvolving}
 import org.apache.flink.api.common.functions.{FoldFunction, ReduceFunction}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.{WindowedStream => JavaWStream}
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction.AggregationType
 import org.apache.flink.streaming.api.functions.aggregation.{ComparableAggregator, SumAggregator}
-import org.apache.flink.streaming.api.scala.function.WindowFunction
-import org.apache.flink.streaming.api.scala.function.util.{ScalaFoldFunction, ScalaReduceFunction, ScalaWindowFunction, ScalaWindowFunctionWrapper}
+import org.apache.flink.streaming.api.scala.function.{ProcessWindowFunction, WindowFunction}
+import org.apache.flink.streaming.api.scala.function.util._
 import org.apache.flink.streaming.api.windowing.evictors.Evictor
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.triggers.Trigger
@@ -313,6 +313,14 @@ class WindowedStream[T, K, W <: Window](javaStream: JavaWStream[T, K, W]) {
     
     val cleanFunction = clean(function)
     val applyFunction = new ScalaWindowFunctionWrapper[T, R, K, W](cleanFunction)
+    asScalaStream(javaStream.apply(applyFunction, implicitly[TypeInformation[R]]))
+  }
+
+  def apply[R: TypeInformation](
+      function: ProcessWindowFunction[T, R, K, W]): DataStream[R] = {
+
+    val cleanFunction = clean(function)
+    val applyFunction = new ScalaProcessWindowFunctionWrapper[T, R, K, W](cleanFunction)
     asScalaStream(javaStream.apply(applyFunction, implicitly[TypeInformation[R]]))
   }
 

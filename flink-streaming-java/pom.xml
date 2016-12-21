@@ -29,8 +29,8 @@ under the License.
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>flink-streaming-java_2.10</artifactId>
-	<name>flink-streaming-java</name>
+	<artifactId>flink-streaming-java-custom_2.10</artifactId>
+	<name>flink-streaming-java-custom</name>
 
 	<packaging>jar</packaging>
 

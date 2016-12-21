@@ -17,6 +17,7 @@
  */
 package org.apache.flink.streaming.runtime.operators.windowing.functions;
 
+import com.google.common.collect.Iterables;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.IterationRuntimeContext;
 import org.apache.flink.api.common.functions.RichFunction;
@@ -24,32 +25,37 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.functions.util.FunctionUtils;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.WindowFunctionWrapper;
 import org.apache.flink.streaming.api.operators.OutputTypeConfigurable;
 import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.util.Collector;
 
-import java.util.Collections;
-
 /**
- * Internal window function for wrapping an {@link AllWindowFunction} that takes an {@code Iterable}
- * when the window state is a single value.
+ * Internal window function for wrapping a {@link WindowFunction} that takes an {@code Iterable}
+ * when the window state also is an {@code Iterable}.
  */
-public final class InternalSingleValueAllWindowFunction<IN, OUT, W extends Window>
-		extends InternalWindowFunction<IN, OUT, Byte, W>
+public final class InternalIterableProcessWindowFunction<IN, OUT, KEY, W extends Window>
+		extends InternalProcessWindowFunction<Iterable<IN>, OUT, KEY, W>
 		implements RichFunction {
 
 	private static final long serialVersionUID = 1L;
 
-	protected AllWindowFunction<IN, OUT, W> wrappedFunction;
+	protected final ProcessWindowFunction<IN, OUT, KEY, W> wrappedFunction;
 
-	public InternalSingleValueAllWindowFunction(AllWindowFunction<IN, OUT, W> wrappedFunction) {
+	public InternalIterableProcessWindowFunction(WindowFunction<IN, OUT, KEY, W> windowFunction) {
+		this(new WindowFunctionWrapper<>(windowFunction));
+	}
+
+	public InternalIterableProcessWindowFunction(ProcessWindowFunction<IN, OUT, KEY, W> wrappedFunction) {
 		this.wrappedFunction = wrappedFunction;
 	}
 
 	@Override
-	public void apply(Byte key, W window, IN input, Collector<OUT> out) throws Exception {
-		wrappedFunction.apply(window, Collections.singletonList(input), out);
+	public void process(KEY key, Iterable<Iterable<IN>> elements, Context ctx, Collector<OUT> out) throws Exception {
+		ContextWrapper wrapper = new ContextWrapper(wrappedFunction, ctx.window(), ctx.watermark());
+		wrappedFunction.process(key, Iterables.concat(elements), wrapper, out);
 	}
 
 	@Override

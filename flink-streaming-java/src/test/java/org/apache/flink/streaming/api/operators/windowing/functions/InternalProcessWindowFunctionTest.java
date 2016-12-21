@@ -27,25 +27,25 @@ import org.apache.flink.streaming.api.functions.windowing.RichAllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.RichWindowFunction;
 import org.apache.flink.streaming.api.operators.OutputTypeConfigurable;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableAllWindowFunction;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableWindowFunction;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueAllWindowFunction;
-import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableAllProcessWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableProcessWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueAllProcessWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueProcessWindowFunction;
 import org.apache.flink.util.Collector;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
-public class InternalWindowFunctionTest {
+public class InternalProcessWindowFunctionTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testInternalIterableAllWindowFunction() throws Exception {
 
 		AllWindowFunctionMock mock = mock(AllWindowFunctionMock.class);
-		InternalIterableAllWindowFunction<Long, String, TimeWindow> windowFunction =
-			new InternalIterableAllWindowFunction<>(mock);
+		InternalIterableAllProcessWindowFunction<Long, String, TimeWindow> windowFunction =
+			new InternalIterableAllProcessWindowFunction<>(mock);
 
 		// check setOutputType
 		TypeInformation<String> stringType = BasicTypeInfo.STRING_TYPE_INFO;
@@ -72,7 +72,7 @@ public class InternalWindowFunctionTest {
 		Iterable<Long> i = (Iterable<Long>)mock(Iterable.class);
 		Collector<String> c = (Collector<String>) mock(Collector.class);
 
-		windowFunction.apply(((byte)0), w, i, c);
+		// windowFunction.apply(((byte)0), w, i, c);
 		verify(mock).apply(w, i, c);
 
 		// check close
@@ -85,8 +85,8 @@ public class InternalWindowFunctionTest {
 	public void testInternalIterableWindowFunction() throws Exception {
 
 		WindowFunctionMock mock = mock(WindowFunctionMock.class);
-		InternalIterableWindowFunction<Long, String, Long, TimeWindow> windowFunction =
-			new InternalIterableWindowFunction<>(mock);
+		InternalIterableProcessWindowFunction<Long, String, Long, TimeWindow> windowFunction =
+			new InternalIterableProcessWindowFunction<>(mock);
 
 		// check setOutputType
 		TypeInformation<String> stringType = BasicTypeInfo.STRING_TYPE_INFO;
@@ -113,7 +113,7 @@ public class InternalWindowFunctionTest {
 		Iterable<Long> i = (Iterable<Long>)mock(Iterable.class);
 		Collector<String> c = (Collector<String>) mock(Collector.class);
 
-		windowFunction.apply(42L, w, i, c);
+		// windowFunction.apply(42L, w, i, c);
 		verify(mock).apply(42L, w, i, c);
 
 		// check close
@@ -126,8 +126,8 @@ public class InternalWindowFunctionTest {
 	public void testInternalSingleValueWindowFunction() throws Exception {
 
 		WindowFunctionMock mock = mock(WindowFunctionMock.class);
-		InternalSingleValueWindowFunction<Long, String, Long, TimeWindow> windowFunction =
-			new InternalSingleValueWindowFunction<>(mock);
+		InternalSingleValueProcessWindowFunction<Long, String, Long, TimeWindow> windowFunction =
+			new InternalSingleValueProcessWindowFunction<>(mock);
 
 		// check setOutputType
 		TypeInformation<String> stringType = BasicTypeInfo.STRING_TYPE_INFO;
@@ -153,7 +153,7 @@ public class InternalWindowFunctionTest {
 		TimeWindow w = mock(TimeWindow.class);
 		Collector<String> c = (Collector<String>) mock(Collector.class);
 
-		windowFunction.apply(42L, w, 23L, c);
+		// windowFunction.apply(42L, w, 23L, c);
 		verify(mock).apply(eq(42L), eq(w), (Iterable<Long>)argThat(IsIterableContainingInOrder.contains(23L)), eq(c));
 
 		// check close
@@ -166,8 +166,8 @@ public class InternalWindowFunctionTest {
 	public void testInternalSingleValueAllWindowFunction() throws Exception {
 
 		AllWindowFunctionMock mock = mock(AllWindowFunctionMock.class);
-		InternalSingleValueAllWindowFunction<Long, String, TimeWindow> windowFunction =
-			new InternalSingleValueAllWindowFunction<>(mock);
+		InternalSingleValueAllProcessWindowFunction<Long, String, TimeWindow> windowFunction =
+			new InternalSingleValueAllProcessWindowFunction<>(mock);
 
 		// check setOutputType
 		TypeInformation<String> stringType = BasicTypeInfo.STRING_TYPE_INFO;
@@ -193,7 +193,7 @@ public class InternalWindowFunctionTest {
 		TimeWindow w = mock(TimeWindow.class);
 		Collector<String> c = (Collector<String>) mock(Collector.class);
 
-		windowFunction.apply(((byte)0), w, 23L, c);
+		// windowFunction.apply(((byte)0), w, 23L, c);
 		verify(mock).apply(eq(w), (Iterable<Long>)argThat(IsIterableContainingInOrder.contains(23L)), eq(c));
 
 		// check close
